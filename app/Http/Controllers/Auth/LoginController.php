@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-
+use Illuminate\Http\Request;
+use Auth;
+use DB;
 class LoginController extends Controller
 {
     /*
@@ -25,7 +27,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -35,5 +37,19 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    public function login(Request $request)
+    {
+        $data = DB::table('auth')->where('email',$request->email)->first();
+        if ($data != null) {
+            $access = DB::table('auth')->where('email',$request->email)->leftJoin('roles','roles.id_roles','auth.role')->first()->menus;
+            $hak = json_decode($access);
+            $this->validateLogin($request);
+            if($this->attemptLogin($request)){
+                return $this->sendLoginResponse($request);
+            }
+        }
+        
     }
 }
